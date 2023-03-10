@@ -1,5 +1,5 @@
 {
- TCpfCnpjDBEdit Component Feito para o Delphi 10.3 não testado em outras versões
+ TCpfCnpjDBEdit Component
  First Version (2023) by: Thiago Balbino. (https://specials.rejbrand.se/dev/controls/tageditor/)
  Componente para Mascarar e Gravar em campo de Dataset/Query automaticament um CPF OU CNPJ apos digitar informação
  Atenção o componente salva no Cliente ou Query somente os valores sem a formação a formatação é sómente para exibir
@@ -396,9 +396,9 @@ end;
 procedure TCpfCnpjDBEdit.WMPaste(var Msg: TWMPaste);
 begin
   OutputDebugString(Pchar('TCpfCnpjDBEdit.WMPaste'));
- // if True then
- // else
-  inherited;
+  if True then
+  else
+        inherited;
 end;
 
 end.
