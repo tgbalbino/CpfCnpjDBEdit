@@ -1,14 +1,15 @@
 {
  TCpfCnpjDBEdit Component Feito para o Delphi 10.3 não testado em outras versões
- First Version (2023) by: Thiago Balbino. (https://specials.rejbrand.se/dev/controls/tageditor/)
  Componente para Mascarar e Gravar em campo de Dataset/Query automaticament um CPF OU CNPJ apos digitar informação
- Atenção o componente salva no Cliente ou Query somente os valores sem a formação a formatação é sómente para exibir
+ Atenção o componente salva no Cliente ou Query somente os valores sem a formatação ou seja a mesma é só visual
+ First Version: 2023
+ by: Thiago Balbino
+ Data: 10/03/2013
 
  Possiveis futuras implementaões
-   * Isvalid ( validar se o documento informado é válido
+   * Isvalid ( validar se o documento informado é válido)
    * Type ( tdCpf, tdCPNJ, tdCpfCnpj) propriedade só aceite digitar um CPF ou CNPJ com padrão tdCpfCnpj
    * Validar ao Colar(Ctrl + V) um conteudo e aceitar somente números.
-
 
    Sugestoes e melhorias são bem vindas: tecnologiaminas@gmail.com
 }
