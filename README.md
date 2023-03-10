@@ -1,5 +1,5 @@
 # CpfCnpjDBEdit
- Componente Delphi DBEdit para Mascarar CPF ou CNPJ ligado a um Dataset/Query
+ Componente Delphi DBEdit para Mascarar CPF ou CNPJ ligado a um Dataset/Query, feito e testado no Delphi 10.3
  
  Sugestoes de melhorias e implementaçõe: tecnologiaminas@gmail.com
  
