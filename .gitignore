@@ -3,3 +3,5 @@
 Demo\__history\
 Demo/Win32/Debug/Demo.exe
 Demo/Demo.dproj.local
+Demo/Demo.dproj.local
+*.dproj.local
