@@ -1,2 +1,2 @@
 # CpfCnpjDBEdit
- Componente para Mascarar CPF ou CNPJ ligado a um Dataset
+ Componente Delphi para Mascarar CPF ou CNPJ ligado a um Dataset
