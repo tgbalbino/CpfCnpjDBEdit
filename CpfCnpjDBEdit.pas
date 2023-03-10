@@ -2,6 +2,15 @@
  TCpfCnpjDBEdit Component
  First Version (2023) by: Thiago Balbino. (https://specials.rejbrand.se/dev/controls/tageditor/)
  Componente para Mascarar e Gravar em campo de Dataset/Query automaticament um CPF OU CNPJ apos digitar informação
+ Atenção o componente salva no Cliente ou Query somente os valores sem a formação a formatação é sómente para exibir
+
+ Possiveis futuras implementaões
+   * Isvalid ( validar se o documento informado é válido
+   * Type ( tdCpf, tdCPNJ, tdCpfCnpj) propriedade só aceite digitar um CPF ou CNPJ com padrão tdCpfCnpj
+   * Validar ao Colar(Ctrl + V) um conteudo e aceitar somente números.
+
+
+   Sugestoes e melhorias são bem vindas: tecnologiaminas@gmail.com
 }
 
 unit CpfCnpjDBEdit;
@@ -11,7 +20,7 @@ interface
 uses
   System.SysUtils, System.Classes, Vcl.Controls, Vcl.StdCtrls, Vcl.Mask,
   Vcl.DBCtrls, Db, Windows, Messages,  Variants,  Graphics, Forms,
-  Dialogs;
+  Dialogs, Clipbrd;
 
 type
   TCpfCnpjDBEdit = class(TDBEdit)
@@ -19,8 +28,10 @@ type
     procedure CMTextChanged(var Message: TMessage); message CM_TEXTCHANGED;
     procedure WMKEYUP(var Message: TWMPaint); message WM_KEYUP;
   private
+    FDocValidar: String;
     FIsUnMask: Boolean;
     FFirst: Boolean;
+    FRaiseExcepOnValidade: Boolean;
     FPaintedRed: Boolean;
     FRequired: Boolean;
     procedure CheckForInvalidate;
@@ -29,12 +40,18 @@ type
     function hasMask: Boolean;
     procedure unMaskIfNeed;
     procedure removeMask;
+
+    function ValidarCNPJouCPF: boolean;
+    function ValidarCPF: boolean ;
+    function ValidarCNPJ: boolean ;
     { Private declarations }
   protected
+    procedure WMPaste(var Msg: TWMPaste); message WM_PASTE;
     procedure Change; override;
     procedure DoExit; override;
     procedure DoEnter; override;
     procedure KeyPress(var Key: Char); override;
+    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
 //   property Mask: String read FMask write FMask;
     { Protected declarations }
   public
@@ -58,6 +75,39 @@ implementation
 procedure Register;
 begin
   RegisterComponents('Samples', [TCpfCnpjDBEdit]);
+end;
+
+function CharIsNum(const C: Char): Boolean;
+begin
+  Result := CharInSet( C, ['0'..'9'] ) ;
+end ;
+
+function OnlyNumber(const AValue: String): String;
+Var
+  I : Integer ;
+  LenValue : Integer;
+begin
+  Result   := '' ;
+  LenValue := Length( AValue ) ;
+  For I := 1 to LenValue  do
+  begin
+    if CharIsNum( AValue[I] ) then
+        Result := Result + AValue[I];
+  end;
+end;
+
+function StrIsNumber(const S: String): Boolean;
+Var
+  A, LenStr : Integer ;
+begin
+  LenStr := Length( S ) ;
+  Result := (LenStr > 0) ;
+  A      := 1 ;
+  while Result and ( A <= LenStr )  do
+  begin
+     Result := CharIsNum( S[A] ) ;
+     Inc(A) ;
+  end;
 end;
 
 function RemoveChar(const Texto: string): string;
@@ -158,7 +208,27 @@ end;
 
 function TCpfCnpjDBEdit.IsValid: boolean;
 begin
+  if (not ValidarCNPJouCPF)  then
+  begin
+    if (FRaiseExcepOnValidade) then
+    raise Exception.Create('CPF ou CNPJ Inválido.')
+    else
+    Result := False;
+  end;
+end;
 
+procedure TCpfCnpjDBEdit.KeyDown(var Key: Word;
+  Shift: TShiftState);
+begin
+  inherited;
+  if ((ssCtrl in Shift) AND (Key = ord('V'))) then
+  begin
+    //if Clipboard.HasFormat(CF_TEXT) then ClipBoard.Clear;
+    //if ( Clipboard.ToString) then
+
+
+   // Edit1.SelText := '"Colar" DESATIVADO!';
+  end;
 end;
 
 procedure TCpfCnpjDBEdit.KeyPress(var Key: Char);
@@ -204,6 +274,98 @@ begin
   removeMask;
 end;
 
+function TCpfCnpjDBEdit.ValidarCNPJ: boolean ;
+Var DV1, DV2, fsDocto, fsMsgErro: String ;
+begin
+  fsDocto:= Self.Text;
+  Result := False;
+
+  if (Length( fsDocto ) <> 14) or ( not StrIsNumber( fsDocto ) ) then
+  begin
+    fsMsgErro := 'CNPJ deve ter 14 dígitos. (Apenas números)' ;
+    exit;
+  end ;
+
+  if fsDocto = StringOfChar('0',14) then  // Prevenção contra 00000000000000
+  begin
+    fsMsgErro := 'CNPJ inválido.' ;
+    exit;
+  end;
+
+  {Modulo.CalculoPadrao ;
+  Modulo.Documento := copy(fsDocto, 1, 12) ;
+  Modulo.Calcular ;
+  DV1 := IntToStr( Modulo.DigitoFinal ) ;
+
+  Modulo.Documento := copy(fsDocto, 1, 12)+DV1 ;
+  Modulo.Calcular ;
+  DV2 := IntToStr( Modulo.DigitoFinal ) ;
+
+  fsDigitoCalculado := DV1+DV2 ;
+
+  if (DV1 <> fsDocto[13]) or (DV2 <> fsDocto[14]) then
+  begin
+     fsMsgErro := 'CNPJ inválido.' ;
+  end
+  else
+   Result := True;    }
+
+end;
+
+function TCpfCnpjDBEdit.ValidarCNPJouCPF;
+Var
+  NumDocto : String ;
+begin
+   FDocValidar := OnlyNumber(Self.Text) ;
+   if Length(NumDocto) < 12 then
+      Result := ValidarCPF
+   else
+      Result := ValidarCNPJ;
+end;
+
+function TCpfCnpjDBEdit.ValidarCPF: Boolean;
+Var DV1, DV2, fsDocto, fsMsgErro: String;
+begin
+  fsDocto:= FDocValidar;
+  Result := False;
+
+  if (Length( fsDocto ) <> 11) or ( not StrIsNumber( fsDocto ) ) then
+  begin
+    fsMsgErro := 'CPF deve ter 11 dígitos. (Apenas números)' ;
+    exit
+  end ;
+
+  if pos(fsDocto,'11111111111.22222222222.33333333333.44444444444.55555555555.'+
+         '66666666666.77777777777.88888888888.99999999999.00000000000') > 0 then
+  begin
+    fsMsgErro := 'CPF inválido !' ;
+    exit ;
+  end ;
+
+
+  {Modulo.MultiplicadorInicial := 2  ;
+  Modulo.MultiplicadorFinal   := 11 ;
+  Modulo.FormulaDigito        := frModulo11 ;
+  Modulo.Documento := copy(fsDocto, 1, 9) ;
+  Modulo.Calcular ;
+  DV1 := IntToStr( Modulo.DigitoFinal ) ;
+
+  Modulo.Documento := copy(fsDocto, 1, 9)+DV1 ;
+  Modulo.Calcular ;
+  DV2 := IntToStr( Modulo.DigitoFinal ) ;
+
+  fsDigitoCalculado := DV1+DV2 ;
+
+  if (DV1 <> fsDocto[10]) or (DV2 <> fsDocto[11]) then
+  begin
+     fsMsgErro := 'CPF inválido.' ;
+
+     if fsExibeDigitoCorreto then
+        fsMsgErro := fsMsgErro + '.. Dígito calculado: '+fsDigitoCalculado ;
+  end ;  }
+
+end;
+
 procedure TCpfCnpjDBEdit.WMKEYUP(var Message: TWMPaint);
 begin
   CheckForInvalidate;
@@ -229,6 +391,14 @@ begin
   end
   else
     FPaintedRed := false;
+end;
+
+procedure TCpfCnpjDBEdit.WMPaste(var Msg: TWMPaste);
+begin
+  OutputDebugString(Pchar('TCpfCnpjDBEdit.WMPaste'));
+  if True then
+  else
+        inherited;
 end;
 
 end.
